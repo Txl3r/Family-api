@@ -25,9 +25,37 @@ def handle_invalid_usage(error):
 def sitemap():
     return generate_sitemap(app)
 
-@app.route('/members', methods=['GET'])
-def handle_hello():
+@app.route('/members/<int:member_id', methods=['GET'])
+def get_member(member_id):
+    response_body = request.get_json()
 
+    jackson_family.add_member(response_body)
+    return jsonify(response_body), 200
+
+
+
+@app.route('/members', methods=['POST'])
+def add_member():
+    response_body = request.get_json()
+
+    if "first_name" not in response_body or response_body["first_name"] == "":
+        raise APIException('bad request, First Name needed', status_code=400)
+    if "last_name" not in response_body or response_body["last_name"] != "Jackson":
+        raise APIException('bad request, Last name need to be Jackson', status_code=400)
+    if "age" not in response_body or response_body["age"] <= 0:
+        raise APIException('bad request, Age needed', status_code=400)
+    if "lucky_numbers" not in response_body:
+        raise APIException('bad request, Lucky_numbers needed', status_code=400)
+        
+    new_member = FamilyStructure(response_body["last_name"])
+    jackson_family.add_member(response_body)
+    return jsonify(response_body), 200
+
+@app.route('/member/<int:member_id>', methods=['DELETE'])
+def delete_member(member_id):
+    response_body = request.get_json(member_id)
+
+    member_id.pop()
     # this is how you can use the Family datastructure by calling its methods
     members = jackson_family.get_all_members()
     response_body = {
